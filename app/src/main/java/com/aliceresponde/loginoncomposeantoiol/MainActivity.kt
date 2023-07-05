@@ -3,6 +3,7 @@ package com.aliceresponde.loginoncomposeantoiol
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,19 +28,45 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.aliceresponde.loginoncomposeantoiol.ui.theme.LoginOnComposeAntoioLTheme
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LoginForm()
+            val navController = rememberNavController()
+            NavHost(navController = navController, startDestination = "Login") {
+                composable("Login") {
+                    LoginForm(
+                        onLoginClicked = { navController.navigate("Home") }
+                    )
+                }
+                composable("Home") { HomeScreen() }
+            }
         }
     }
 
     @Preview(showBackground = true)
     @Composable
-    fun LoginForm() {
+    fun HomeScreen() {
+        Screen {
+            Text(
+                text = "Home",
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .fillMaxSize()
+            )
+        }
+    }
+
+    // is not to possible to preview a composable with a un initialized listener/callback parameter
+    @Composable
+    fun LoginForm(onLoginClicked: () -> Unit) {
         Screen {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -50,11 +77,8 @@ class MainActivity : ComponentActivity() {
                 val isEnabled = user.isNotBlank() && pass.isNotBlank()
 
                 UserField(value = user, onValueChange = { user = it })
-                PasswordField(
-                    value = pass,
-                    onValueChange = { pass = it }
-                )
-                LoginButton(isEnabled = isEnabled, onClick = {})
+                PasswordField(value = pass, onValueChange = { pass = it })
+                LoginButton(isEnabled = isEnabled, onClick = { onLoginClicked() })
             }
         }
     }
@@ -68,18 +92,14 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun UserField(value: String, onValueChange: (String) -> Unit) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(text = "Username") })
+        OutlinedTextField(value = value, onValueChange = onValueChange, label = { Text(text = "Username") })
     }
 
     @Composable
     fun PasswordField(value: String, onValueChange: (String) -> Unit) {
         var isPasswordVisible by remember { mutableStateOf(false) }
 
-        OutlinedTextField(
-            value = value,
+        OutlinedTextField(value = value,
             onValueChange = onValueChange,
             label = { Text(text = "Password") },
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -88,8 +108,7 @@ class MainActivity : ComponentActivity() {
                     val icon = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     Icon(icon, contentDescription = "Password visibility")
                 }
-            }
-        )
+            })
     }
 
     @Composable
